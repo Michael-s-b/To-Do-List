@@ -6,27 +6,47 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const path_1 = __importDefault(require("path"));
+const global_1 = require("./global");
 const app = (0, express_1.default)();
 app.use(body_parser_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.static(path_1.default.join(__dirname, "/public")));
 app.set("view engine", "ejs"); //setting the view engine of the application to ejs.
 app.set("views", path_1.default.join(__dirname, "/views")); // setting the app to look for the views dir on the correct dir
-let listOfItems = [];
-app.get("/", (req, res) => {
-    let date = new Date();
-    let options = {
-        //options to parse the Date returned by the function toLocaleDateString
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-    };
-    let parsedDate = date.toLocaleDateString("en-US", options);
-    res.render("list", { parsedDate: parsedDate, listOfItems: listOfItems });
+const dailyList = []; // to do list of homePageDir
+const workList = []; // to do list of workPageDir
+const homePageDir = "/";
+const workPageDir = "/work";
+// "/"
+app.get(homePageDir, (req, res) => {
+    const parsedDate = (0, global_1.getDate)();
+    res.render("list", {
+        listTitle: parsedDate,
+        listOfItems: dailyList,
+        formAction: homePageDir,
+    });
 });
-app.post("/", (req, res) => {
-    let item = req.body.newItem;
-    listOfItems.push(item);
-    res.redirect("/");
+app.post(homePageDir, (req, res) => {
+    const item = req.body.newItem;
+    dailyList.push(item);
+    res.redirect(homePageDir);
+});
+// "/work"
+app.get(workPageDir, (req, res) => {
+    const workTitle = "Work";
+    res.render("list", {
+        listTitle: workTitle,
+        listOfItems: workList,
+        formAction: workPageDir,
+    });
+});
+app.post(workPageDir, (req, res) => {
+    const item = req.body.newItem;
+    workList.push(item);
+    res.redirect(workPageDir);
+});
+// "/about"
+app.get("/about", (req, res) => {
+    res.render("about");
 });
 app.listen(3000, () => {
     console.log("Listening on port 3000...");
